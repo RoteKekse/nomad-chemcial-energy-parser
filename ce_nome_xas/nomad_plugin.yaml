@@ -1,0 +1,7 @@
+plugin_type: parser
+name: parsers/ce_nome_xas
+description: |
+  This is a xas parser for ce-nome.
+mainfile_name_re: ^(.*(\.dat))
+parser_class_name: ce_nome_xas.XASParser
+code_name: CE-NOME XAS code

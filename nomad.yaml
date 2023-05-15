@@ -1,0 +1,14 @@
+normalize:
+  normalizers:
+    include:
+      - MetainfoNormalizer
+plugins:
+  # We only include our schema here. Without the explicit include, all plugins will be
+  # loaded. Many build in plugins require more dependencies. Install nomad-lab[parsing]
+  # to make all default plugins work.
+  include: 'parsers/chemical_energy'
+  options:
+    parsers/chemical_energy:
+      python_package: 
+        - ce_nome_gamry
+        - ce_nome_xas
