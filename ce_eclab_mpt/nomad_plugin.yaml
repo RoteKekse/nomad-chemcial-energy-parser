@@ -1,0 +1,7 @@
+plugin_type: parser
+name: parsers/ce_eclab_mpt
+description: |
+  This is a parser for the eclab potentiostat in wansee.
+mainfile_name_re: ^.*\.mpt$
+parser_class_name: ce_eclab_mpt.MPTParser
+code_name: CE MPT Code

@@ -1,0 +1,7 @@
+plugin_type: parser
+name: parsers/ce_corrware_cor
+description: |
+  This is a parser for the corrware potentiostat in wansee.
+mainfile_name_re: ^.*\.cor$
+parser_class_name: ce_corrware_cor.CORParser
+code_name: CE COR Code

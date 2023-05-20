@@ -25,6 +25,7 @@ import os
 import datetime
 
 from .helpers import set_multiple_data, set_data
+from baseclasses.helper.utilities import set_sample_reference, create_archive
 
 
 '''
@@ -131,8 +132,4 @@ class GamryParser(MatchingParser):
         # archive.data = cam_measurements
         if cam_measurements is not None:
             file_name = f'{measurement_name_overall}.archive.json'
-            if not archive.m_context.raw_path_exists(file_name):
-                cam_entry = cam_measurements.m_to_dict(with_root_def=True)
-                with archive.m_context.raw_file(file_name, 'w') as outfile:
-                    json.dump({"data": cam_entry}, outfile)
-                archive.m_context.process_updated_raw_file(file_name)
+            create_archive(cam_measurements, archive, file_name)
