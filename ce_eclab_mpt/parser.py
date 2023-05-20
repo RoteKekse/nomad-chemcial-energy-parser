@@ -46,15 +46,18 @@ class MPTParser(MatchingParser):
             notes = mainfile_split[1]
         cam_measurements = None
 
-        if "_CV_" in notes:
+        from baseclasses.helper.mps_file_parser import read_mpt_file
+        _, _, technique = read_mpt_file(mainfile)
+
+        if "Cyclic Voltammetry" in technique:
             from ce_wannsee_s import Wannsee_B307_CyclicVoltammetry_ECLab
             cam_measurements = Wannsee_B307_CyclicVoltammetry_ECLab()
 
-        if "_OCV_" in notes:
+        if "Open Circuit Voltage" in technique:
             from ce_wannsee_s import Wannsee_B307_OpenCircuitVoltage_ECLab
             cam_measurements = Wannsee_B307_OpenCircuitVoltage_ECLab()
 
-        if "_PEIS_" in notes:
+        if "Potentio Electrochemical Impedance Spectroscopy" in technique:
             from ce_wannsee_s import Wannsee_B307_ElectrochemicalImpedanceSpectroscopy_ECLab
             cam_measurements = Wannsee_B307_ElectrochemicalImpedanceSpectroscopy_ECLab()
 
