@@ -1,0 +1,7 @@
+plugin_type: parser
+name: parsers/ce_nome_uvvis
+description: |
+  This is a uvvis parser for ce nome.
+mainfile_name_re: ^(.*\.ABS)$
+parser_class_name: ce_nome_uvvis.UVvisParser
+code_name: Ce Nome uvvis code
