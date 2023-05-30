@@ -82,10 +82,15 @@ class MPTParser(MatchingParser):
                     pass
 
         cam_measurements.setup_parameters = setup_parameters
-        cam_measurements.samples = [find_sample_by_id(archive, sample_id)]
-        cam_measurements.environment = find_sample_by_id(
-            archive, environment_id)
-        cam_measurements.setup = find_sample_by_id(archive, setup_id)
+        sample_ref = find_sample_by_id(archive, sample_id)
+        if sample_ref is not None:
+            cam_measurements.samples = [sample_ref]
+        environment_ref = find_sample_by_id(archive, environment_id)
+        if environment_ref is not None:
+            cam_measurements.environment = environment_ref
+        setup_ref = find_sample_by_id(archive, setup_id)
+        if setup_ref is not None:
+            cam_measurements.setup = setup_ref
 
         cam_measurements.name = f"{mainfile_split[0]} {notes}"
         cam_measurements.description = f"Notes from file name: {notes}"
