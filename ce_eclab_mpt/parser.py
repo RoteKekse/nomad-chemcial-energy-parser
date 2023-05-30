@@ -69,15 +69,17 @@ class MPTParser(MatchingParser):
 
         from baseclasses.chemical_energy import PotentiostatSetup
         setup_parameters = PotentiostatSetup()
-        setup_params = metadata.get("Comments").split(",")
-        for param in setup_params:
-            if "=" not in param:
-                continue
-            try:
-                key, value = param.split("=")
-                setattr(setup_parameters, key.strip(), value.strip())
-            except:
-                pass
+        setup_params = metadata.get("Comments")
+        if setup_params is not None:
+            setup_params = setup_params.split(",")
+            for param in setup_params:
+                if "=" not in param:
+                    continue
+                try:
+                    key, value = param.split("=")
+                    setattr(setup_parameters, key.strip(), value.strip())
+                except:
+                    pass
 
         cam_measurements.setup_parameters = setup_parameters
         cam_measurements.samples = [find_sample_by_id(archive, sample_id)]
