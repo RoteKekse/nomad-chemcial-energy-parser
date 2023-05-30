@@ -18,7 +18,7 @@
 
 from nomad.datamodel import EntryArchive
 from nomad.parsing import MatchingParser
-from baseclasses.helper.utilities import set_sample_reference, create_archive
+from baseclasses.helper.utilities import find_sample_by_id, create_archive
 
 import os
 
@@ -47,7 +47,7 @@ class MPTParser(MatchingParser):
         cam_measurements = None
 
         from baseclasses.helper.mps_file_parser import read_mpt_file
-        _, _, technique = read_mpt_file(mainfile)
+        metadata, _, technique = read_mpt_file(mainfile)
 
         if "Cyclic Voltammetry" in technique:
             from ce_wannsee_s import Wannsee_B307_CyclicVoltammetry_ECLab
@@ -63,10 +63,29 @@ class MPTParser(MatchingParser):
 
         archive.metadata.entry_name = os.path.basename(mainfile)
 
-        search_id = mainfile_split[0]
-        set_sample_reference(archive, cam_measurements, search_id)
+        sample_id = metadata.get("Electrode material")
+        setup_id = metadata.get("Initial state")
+        environment_id = metadata.get("Electrolyte")
 
-        cam_measurements.name = f"{search_id} {notes}"
+        from baseclasses.chemical_energy import PotentiostatSetup
+        setup_parameters = PotentiostatSetup()
+        setup_params = metadata.get("Comments").split(",")
+        for param in setup_params:
+            if "=" not in param:
+                continue
+            try:
+                key, value = param.split("=")
+                setattr(setup_parameters, key.strip(), value.strip())
+            except:
+                pass
+
+        cam_measurements.setup_parameters = setup_parameters
+        cam_measurements.samples = [find_sample_by_id(archive, sample_id)]
+        cam_measurements.environment = find_sample_by_id(
+            archive, environment_id)
+        cam_measurements.setup = find_sample_by_id(archive, setup_id)
+
+        cam_measurements.name = f"{mainfile_split[0]} {notes}"
         cam_measurements.description = f"Notes from file name: {notes}"
         cam_measurements.data_file = os.path.basename(mainfile)
 
