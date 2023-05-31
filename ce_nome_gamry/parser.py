@@ -25,7 +25,7 @@ import os
 import datetime
 
 from .helpers import set_multiple_data, set_data
-from baseclasses.helper.utilities import set_sample_reference, create_archive
+from baseclasses.helper.utilities import find_sample_by_id, create_archive
 
 
 '''
@@ -108,27 +108,19 @@ class GamryParser(MatchingParser):
 
         archive.metadata.entry_name = os.path.basename(mainfile)
 
-        if "SMPLID" in metadata or "ECCID" in metadata:
-            from nomad.search import search
-            for key in ["ECCID", "SMPLID"]:
-                if key not in metadata:
-                    continue
-                search_id = metadata[key]
-                query = {
-                    'results.eln.lab_ids': search_id
-                }
-                search_result = search(
-                    owner='all',
-                    query=query,
-                    user_id=archive.metadata.main_author.user_id)
-                if len(search_result.data) == 1:
-                    data = search_result.data[0]
-                    upload_id, entry_id = data["upload_id"], data["entry_id"]
-                    if data["entry_type"] == "CE_NOME_ElectroChemicalCell":
-                        cam_measurements.electrochemical_cell = f'../uploads/{upload_id}/archive/{entry_id}#data'
-                    if data["entry_type"] in ["CE_NOME_Electrode", "CE_NOME_Sample"]:
-                        cam_measurements.working_electrode = f'../uploads/{upload_id}/archive/{entry_id}#data'
+        sample_id = metadata.get("SAMPLEID")
+        setup_id = metadata.get("ECSETUPID")
+        environment_id = metadata.get("ENVIRONMENTID")
 
+        sample_ref = find_sample_by_id(archive, sample_id)
+        if sample_ref is not None:
+            cam_measurements.samples = [sample_ref]
+        environment_ref = find_sample_by_id(archive, environment_id)
+        if environment_ref is not None:
+            cam_measurements.environment = environment_ref
+        setup_ref = find_sample_by_id(archive, setup_id)
+        if setup_ref is not None:
+            cam_measurements.setup = setup_ref
         # archive.data = cam_measurements
         if cam_measurements is not None:
             file_name = f'{measurement_name_overall}.archive.json'

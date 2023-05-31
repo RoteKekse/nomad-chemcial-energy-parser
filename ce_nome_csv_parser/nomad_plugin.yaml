@@ -1,0 +1,7 @@
+plugin_type: parser
+name: parsers/ce_nome_csv_parser
+description: |
+  This is a parser for csv data at ce-nome data.
+mainfile_name_re: ^(.+\.csv)$
+parser_class_name: ce_nome_csv_parser.CENOMEcsvParser
+code_name: CE NOME csv code
