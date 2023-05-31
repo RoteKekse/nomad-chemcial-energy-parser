@@ -23,34 +23,16 @@ from ce_nome_s import (CE_NOME_Measurement,
                        CE_NOME_PumpRateMeasurement,
                        CE_NOME_PhaseFluorometryOxygen)
 
-from nomad.datamodel.metainfo.eln import SolarCellEQE
+
+from baseclasses.helper.utilities import get_reference, create_archive, search_class
 
 
-from baseclasses.helper.utilities import get_reference, create_archive
-from nomad.search import search
-
-
-import json
 import os
 import datetime
 
 '''
 This is a hello world style example for an example parser/converter.
 '''
-
-
-def search_class(archive, entry_type):
-    query = {
-        'upload_id': archive.metadata.upload_id,
-        'entry_type': entry_type
-    }
-    search_result = search(
-        owner='all',
-        query=query,
-        user_id=archive.metadata.main_author.user_id)
-    if len(search_result.data) == 1:
-        data = search_result.data[0]
-        return data
 
 
 class CENOMEcsvParser(MatchingParser):

@@ -20,14 +20,8 @@ from nomad.datamodel import EntryArchive
 from nomad.parsing import MatchingParser
 
 from ce_nome_s import CE_NOME_UVvismeasurement
+from baseclasses.helper.utilities import create_archive, search_class, get_reference
 
-from baseclasses.helper.jv_archive import get_jv_archive
-from baseclasses.helper.jv_parser import get_jv_data
-
-from baseclasses.helper.utilities import set_sample_reference, create_archive
-
-
-import json
 import os
 import datetime
 
@@ -58,10 +52,11 @@ class UVvisParser(MatchingParser):
         uvvis = CE_NOME_UVvismeasurement()
 
         archive.metadata.entry_name = os.path.basename(mainfile)
-        search_id = mainfile_split[0]
-        set_sample_reference(archive, uvvis, search_id)
-
-        uvvis.name = f"{search_id} {notes}"
+        sample = search_class(archive, "CE_NOME_Sample")
+        if sample is not None:
+            upload_id, entry_id = sample["upload_id"], sample["entry_id"]
+            uvvis.samples = [get_reference(upload_id, entry_id)]
+        uvvis.name = f"{mainfile_split[0]} {notes}"
         uvvis.description = f"Notes from file name: {notes}"
         uvvis.data_file = [os.path.basename(mainfile)]
         uvvis.datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
