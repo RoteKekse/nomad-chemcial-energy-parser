@@ -50,7 +50,7 @@ def set_data(
         mainfile,
         entry_class,
         entry_properties_class,
-        get_properties_function):
+        get_properties_function=None):
 
     from baseclasses.helper.gamry_parser import get_header_and_data
     from baseclasses.helper.gamry_archive import get_meta_data, get_voltammetry_data, get_eis_data
@@ -70,6 +70,9 @@ def set_data(
     metadata, data = get_header_and_data(
         filename=mainfile)
 
+    if "RINGCURVE" in metadata and baseclasses.chemical_energy.chronoamperometry.Chronoamperometry \
+            in inspect.getmro(entry_class):
+        data = [metadata["RINGCURVE"]]
     get_meta_data(metadata, measurement)
 
     if baseclasses.chemical_energy.voltammetry.Voltammetry \
@@ -93,7 +96,8 @@ def set_data(
             data[0], measurement)
 
     properties = entry_properties_class()
-    get_properties_function(metadata, properties)
-    measurement.properties = properties
+    if get_properties_function is not None:
+        get_properties_function(metadata, properties)
+        measurement.properties = properties
 
     return measurement_name, measurement

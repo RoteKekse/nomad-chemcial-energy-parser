@@ -25,7 +25,7 @@ import os
 import datetime
 
 from .helpers import set_multiple_data, set_data
-from baseclasses.helper.utilities import find_sample_by_id, create_archive
+from baseclasses.helper.utilities import find_sample_by_id, create_archive, get_entry_id_from_file_name, get_reference
 
 
 '''
@@ -50,78 +50,105 @@ class GamryParser(MatchingParser):
         from baseclasses.helper.gamry_parser import get_header_and_data
         metadata, _ = get_header_and_data(filename=mainfile)
 
-        cam_measurements = None
+        measurements = []
         if "_#1.DTA" in mainfile:
             if "CHRONOA" in metadata["TAG"]:
                 from baseclasses.chemical_energy.chronoamperometry import CAPropertiesWithData
                 from baseclasses.helper.gamry_archive import get_cam_properties_data
                 from ce_nome_s import CE_NOME_Chronoamperometry_Multiple
 
-                measurement_name_overall, cam_measurements = set_multiple_data(
-                    mainfile, CE_NOME_Chronoamperometry_Multiple, CAPropertiesWithData, get_cam_properties_data)
+                measurements.append(set_multiple_data(
+                    mainfile, CE_NOME_Chronoamperometry_Multiple, CAPropertiesWithData, get_cam_properties_data))
             if "EISPOT" in metadata["TAG"]:
                 from baseclasses.chemical_energy.electorchemical_impedance_spectroscopy import EISPropertiesWithData
                 from baseclasses.helper.gamry_archive import get_eis_properties_data
                 from ce_nome_s import CE_NOME_ElectrochemicalImpedanceSpectroscopy_Multiple
 
-                measurement_name_overall, cam_measurements = set_multiple_data(
-                    mainfile, CE_NOME_ElectrochemicalImpedanceSpectroscopy_Multiple, EISPropertiesWithData, get_eis_properties_data)
+                measurements.append(set_multiple_data(
+                    mainfile, CE_NOME_ElectrochemicalImpedanceSpectroscopy_Multiple, EISPropertiesWithData, get_eis_properties_data))
 
         else:
+            if "COLLECT" in metadata["TAG"]:
+                from baseclasses.chemical_energy.chronoamperometry import CAProperties
+                from baseclasses.helper.gamry_archive import get_ca_properties
+                from ce_nome_s import CE_NOME_Chronoamperometry
+                nCA, mCA = set_data(
+                    mainfile, CE_NOME_Chronoamperometry, CAProperties)
+                mCA.station = metadata.get("RINGPSTAT")
+
+                from baseclasses.chemical_energy.cyclicvoltammetry import CVProperties
+                from baseclasses.helper.gamry_archive import get_cv_properties
+                from ce_nome_s import CE_NOME_CyclicVoltammetry
+
+                nCV, mCV = set_data(
+                    mainfile, CE_NOME_CyclicVoltammetry, CVProperties, get_cv_properties)
+                mCV.station = metadata.get("DISKPSTAT")
+
+                nCA += "_CA.archive.json"
+                nCV += "_CV.archive.json"
+                eid_CA = get_entry_id_from_file_name(nCA, archive)
+                eid_CV = get_entry_id_from_file_name(nCV, archive)
+
+                mCA.connected_experiments = [get_reference(
+                    archive.metadata.upload_id, eid_CV)]
+                mCV.connected_experiments = [get_reference(
+                    archive.metadata.upload_id, eid_CA)]
+
+                measurements.append((nCA, mCA))
+                measurements.append((nCV, mCV))
+
             if "CHRONOA" in metadata["TAG"]:
                 from baseclasses.chemical_energy.chronoamperometry import CAProperties
                 from baseclasses.helper.gamry_archive import get_ca_properties
                 from ce_nome_s import CE_NOME_Chronoamperometry
 
-                measurement_name_overall, cam_measurements = set_data(
-                    mainfile, CE_NOME_Chronoamperometry, CAProperties, get_ca_properties)
+                measurements.append(set_data(
+                    mainfile, CE_NOME_Chronoamperometry, CAProperties, get_ca_properties))
             if "CV" in metadata["TAG"]:
                 from baseclasses.chemical_energy.cyclicvoltammetry import CVProperties
                 from baseclasses.helper.gamry_archive import get_cv_properties
                 from ce_nome_s import CE_NOME_CyclicVoltammetry
 
-                measurement_name_overall, cam_measurements = set_data(
-                    mainfile, CE_NOME_CyclicVoltammetry, CVProperties, get_cv_properties)
+                measurements.append(set_data(
+                    mainfile, CE_NOME_CyclicVoltammetry, CVProperties, get_cv_properties))
 
             if "CHRONOC" in metadata["TAG"]:
                 from baseclasses.chemical_energy.chronocoulometry import CCProperties
                 from baseclasses.helper.gamry_archive import get_cc_properties
                 from ce_nome_s import CE_NOME_Chronocoulometry
 
-                measurement_name_overall, cam_measurements = set_data(
-                    mainfile, CE_NOME_Chronocoulometry, CCProperties, get_cc_properties)
+                measurements.append(set_data(
+                    mainfile, CE_NOME_Chronocoulometry, CCProperties, get_cc_properties))
             if "CORPOT" in metadata["TAG"]:
                 from baseclasses.chemical_energy.opencircuitvoltage import OCVProperties
                 from baseclasses.helper.gamry_archive import get_ocv_properties
                 from ce_nome_s import CE_NOME_OpenCircuitVoltage
 
-                measurement_name_overall, cam_measurements = set_data(
-                    mainfile, CE_NOME_OpenCircuitVoltage, OCVProperties, get_ocv_properties)
+                measurements.append(set_data(
+                    mainfile, CE_NOME_OpenCircuitVoltage, OCVProperties, get_ocv_properties))
 
             if "EISPOT" in metadata["TAG"]:
                 from baseclasses.chemical_energy.electorchemical_impedance_spectroscopy import EISProperties
                 from baseclasses.helper.gamry_archive import get_eis_properties
                 from ce_nome_s import CE_NOME_ElectrochemicalImpedanceSpectroscopy
 
-                measurement_name_overall, cam_measurements = set_data(
-                    mainfile, CE_NOME_ElectrochemicalImpedanceSpectroscopy, EISProperties, get_eis_properties)
+                measurements.append(set_data(
+                    mainfile, CE_NOME_ElectrochemicalImpedanceSpectroscopy, EISProperties, get_eis_properties))
 
         archive.metadata.entry_name = os.path.basename(mainfile)
 
         sample_id = metadata.get("SAMPLEID")
         setup_id = metadata.get("ECSETUPID")
         environment_id = metadata.get("ENVIRONMENTID")
-
         sample_ref = find_sample_by_id(archive, sample_id)
-        if sample_ref is not None:
-            cam_measurements.samples = [sample_ref]
         environment_ref = find_sample_by_id(archive, environment_id)
-        if environment_ref is not None:
-            cam_measurements.environment = environment_ref
         setup_ref = find_sample_by_id(archive, setup_id)
-        if setup_ref is not None:
-            cam_measurements.setup = setup_ref
-        # archive.data = cam_measurements
-        if cam_measurements is not None:
-            file_name = f'{measurement_name_overall}.archive.json'
-            create_archive(cam_measurements, archive, file_name)
+
+        for name, measurement in measurements:
+            if sample_ref is not None:
+                measurement.samples = [sample_ref]
+            if environment_ref is not None:
+                measurement.environment = environment_ref
+            if setup_ref is not None:
+                measurement.setup = setup_ref
+            create_archive(measurement, archive, name)
