@@ -145,10 +145,13 @@ class GamryParser(MatchingParser):
         setup_ref = find_sample_by_id(archive, setup_id)
 
         for name, measurement in measurements:
+            print(name, measurement)
             if sample_ref is not None:
                 measurement.samples = [sample_ref]
             if environment_ref is not None:
                 measurement.environment = environment_ref
             if setup_ref is not None:
                 measurement.setup = setup_ref
+            if ".archive.json" not in name:
+                name += ".archive.json"
             create_archive(measurement, archive, name)
