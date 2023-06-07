@@ -152,4 +152,5 @@ class GamryParser(MatchingParser):
                 measurement.setup = setup_ref
             if ".archive.json" not in name:
                 name += ".archive.json"
+            name = name.replace("#", "run")
             create_archive(measurement, archive, name)
