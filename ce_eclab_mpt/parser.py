@@ -46,7 +46,7 @@ class MPTParser(MatchingParser):
             notes = mainfile_split[1]
         cam_measurements = None
 
-        from baseclasses.helper.mps_file_parser import read_mpt_file
+        from baseclasses.helper.file_parser.mps_file_parser import read_mpt_file
         metadata, _, technique = read_mpt_file(mainfile)
 
         if "Cyclic Voltammetry" in technique:

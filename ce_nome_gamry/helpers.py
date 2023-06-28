@@ -9,41 +9,41 @@ import os
 import inspect
 
 
-def set_multiple_data(
-        mainfile,
-        entry_multiple_class,
-        entry_properties_class,
-        get_properties_function):
+# def set_multiple_data(
+#         mainfile,
+#         entry_multiple_class,
+#         entry_properties_class,
+#         get_properties_function):
 
-    from baseclasses.helper.gamry_parser import get_header_and_data
-    from baseclasses.helper.gamry_archive import get_meta_data
+#     from baseclasses.helper.gamry_parser import get_header_and_data
+#     from baseclasses.helper.gamry_archive import get_meta_data
 
-    measurement_base, measurement_name = os.path.split(mainfile)
-    measurement_name_overall = measurement_name.replace("_#1", "")
-    measurements = entry_multiple_class()
-    measurements.measurements = []
-    batch = [
-        measurement_name.replace(
-            "_#1",
-            f"_#{i}") for i in range(1000) if os.path.isfile(
-            os.path.join(
-                measurement_base,
-                measurement_name.replace(
-                    "_#1",
-                    f"_#{i}")))]
-    for i, filename in enumerate(batch):
-        metadata, data = get_header_and_data(
-            filename=os.path.join(measurement_base, filename))
+#     measurement_base, measurement_name = os.path.split(mainfile)
+#     measurement_name_overall = measurement_name.replace("_#1", "")
+#     measurements = entry_multiple_class()
+#     measurements.measurements = []
+#     batch = [
+#         measurement_name.replace(
+#             "_#1",
+#             f"_#{i}") for i in range(1000) if os.path.isfile(
+#             os.path.join(
+#                 measurement_base,
+#                 measurement_name.replace(
+#                     "_#1",
+#                     f"_#{i}")))]
+#     for i, filename in enumerate(batch):
+#         metadata, data = get_header_and_data(
+#             filename=os.path.join(measurement_base, filename))
 
-        if i == 0:
-            get_meta_data(metadata, measurements)
+#         if i == 0:
+#             get_meta_data(metadata, measurements)
 
-        measurement = entry_properties_class()
-        get_properties_function(metadata, data[0], filename, measurement)
-        measurement.name = filename
-        measurements.measurements.append(measurement)
+#         measurement = entry_properties_class()
+#         get_properties_function(metadata, data[0], filename, measurement)
+#         measurement.name = filename
+#         measurements.measurements.append(measurement)
 
-    return measurement_name_overall, measurements
+#     return measurement_name_overall, measurements
 
 
 def set_data(
@@ -51,6 +51,10 @@ def set_data(
         entry_class,
         entry_properties_class,
         get_properties_function=None):
+
+    measurement_base, measurement_name = os.path.split(mainfile)
+    measurement = entry_class()
+    measurement.data_file = measurement_name
 
     from baseclasses.helper.gamry_parser import get_header_and_data
     from baseclasses.helper.gamry_archive import get_meta_data, get_voltammetry_data, get_eis_data
@@ -61,11 +65,6 @@ def set_data(
         in inspect.getmro(entry_class) or \
         baseclasses.chemical_energy.electorchemical_impedance_spectroscopy.ElectrochemicalImpedanceSpectroscopy \
         in inspect.getmro(entry_class)
-
-    measurement_base, measurement_name = os.path.split(mainfile)
-
-    measurement = entry_class()
-    measurement.data_file = measurement_name
 
     metadata, data = get_header_and_data(
         filename=mainfile)
