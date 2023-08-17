@@ -110,18 +110,21 @@ class GamryParser(MatchingParser):
 
         if sample_ref is None:
             sample = search_class(archive, "CE_NOME_Sample")
-            upload_id, entry_id = sample["upload_id"], sample["entry_id"]
-            sample_ref = get_reference(upload_id, entry_id)
+            if sample is not None:
+                upload_id, entry_id = sample["upload_id"], sample["entry_id"]
+                sample_ref = get_reference(upload_id, entry_id)
 
         if environment_ref is None:
             environment = search_class(archive, "CE_NOME_Environment")
-            upload_id, entry_id = environment["upload_id"], environment["entry_id"]
-            environment_ref = get_reference(upload_id, entry_id)
+            if environment is not None:
+                upload_id, entry_id = environment["upload_id"], environment["entry_id"]
+                environment_ref = get_reference(upload_id, entry_id)
 
         if setup_ref is None:
             setup = search_class(archive, "CE_NOME_ElectroChemicalSetup")
-            upload_id, entry_id = setup["upload_id"], setup["entry_id"]
-            setup_ref = get_reference(upload_id, entry_id)
+            if setup is not None:
+                upload_id, entry_id = setup["upload_id"], setup["entry_id"]
+                setup_ref = get_reference(upload_id, entry_id)
 
         for name, measurement in measurements:
             measurement.data_file = measurement_name
