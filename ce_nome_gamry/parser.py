@@ -75,6 +75,11 @@ class GamryParser(MatchingParser):
             measurements.append(
                 (measurement_name, CE_NOME_Chronoamperometry()))
 
+        if "CHRONOP" in metadata["TAG"]:
+            from ce_nome_s import CE_NOME_Chronopotentiometry
+            measurements.append(
+                (measurement_name, CE_NOME_Chronopotentiometry()))
+
         if "CV" in metadata["TAG"]:
             from ce_nome_s import CE_NOME_CyclicVoltammetry
             measurements.append(
