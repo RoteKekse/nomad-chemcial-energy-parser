@@ -23,7 +23,7 @@ import os
 
 from baseclasses.helper.utilities import find_sample_by_id, create_archive, get_entry_id_from_file_name, get_reference, search_class
 
-
+from nomad.datamodel.metainfo.basesections import CompositeSystemReference
 '''
 This is a hello world style example for an example parser/converter.
 '''
@@ -129,7 +129,7 @@ class GamryParser(MatchingParser):
         for name, measurement in measurements:
             measurement.data_file = measurement_name
             if sample_ref is not None:
-                measurement.samples = [sample_ref]
+                measurement.samples = [CompositeSystemReference(reference=sample_ref)]
             if environment_ref is not None:
                 measurement.environment = environment_ref
             if setup_ref is not None:

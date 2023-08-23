@@ -21,6 +21,7 @@ from nomad.parsing import MatchingParser
 from baseclasses.helper.utilities import find_sample_by_id, create_archive
 
 import os
+from nomad.datamodel.metainfo.basesections import CompositeSystemReference
 
 
 '''
@@ -84,7 +85,7 @@ class MPTParser(MatchingParser):
         cam_measurements.setup_parameters = setup_parameters
         sample_ref = find_sample_by_id(archive, sample_id)
         if sample_ref is not None:
-            cam_measurements.samples = [sample_ref]
+            cam_measurements.samples = [CompositeSystemReference(reference=sample_ref)]
         environment_ref = find_sample_by_id(archive, environment_id)
         if environment_ref is not None:
             cam_measurements.environment = environment_ref

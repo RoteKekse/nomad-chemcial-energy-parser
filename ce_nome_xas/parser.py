@@ -19,11 +19,11 @@
 from nomad.datamodel import EntryArchive
 from nomad.parsing import MatchingParser
 
-
-import json
 import os
 
 from ce_nome_s import Bessy2_KMC2_XASFluorescence, Bessy2_KMC2_XASTransmission
+from baseclasses.helper.utilities import create_archive, search_class, get_reference
+from nomad.datamodel.metainfo.basesections import CompositeSystemReference
 
 '''
 This is a hello world style example for an example parser/converter.
@@ -55,11 +55,13 @@ class XASParser(MatchingParser):
 
         xas_measurement.data_file = measurement_name
         xas_measurement.name = measurement_name
+
+        sample = search_class(archive, "CE_NOME_Sample")
+        if sample is not None:
+            upload_id, entry_id = sample["upload_id"], sample["entry_id"]
+            xas_measurement.samples = [CompositeSystemReference(reference=get_reference(upload_id, entry_id))]
+
         # archive.data = cam_measurements
         if xas_measurement is not None:
             file_name = f'{measurement_name}.archive.json'
-            if not archive.m_context.raw_path_exists(file_name):
-                xas_entry = xas_measurement.m_to_dict(with_root_def=True)
-                with archive.m_context.raw_file(file_name, 'w') as outfile:
-                    json.dump({"data": xas_entry}, outfile)
-                archive.m_context.process_updated_raw_file(file_name)
+            create_archive(xas_measurement, archive, file_name)

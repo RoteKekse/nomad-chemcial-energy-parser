@@ -25,6 +25,7 @@ from ce_nome_s import (CE_NOME_Measurement,
 
 
 from baseclasses.helper.utilities import get_reference, create_archive, search_class
+from nomad.datamodel.metainfo.basesections import CompositeSystemReference
 
 
 import os
@@ -38,7 +39,7 @@ This is a hello world style example for an example parser/converter.
 class CENOMEcsvParser(MatchingParser):
     def __init__(self):
         super().__init__(
-            name='parsers/hysprintjv', code_name='HYSPRINTJV', code_homepage='https://www.example.eu/',
+            name='parsers/CENOMEcsv', code_name='CENOMEcsv', code_homepage='https://www.example.eu/',
             supported_compressions=['gz', 'bz2', 'xz']
         )
 
@@ -62,7 +63,7 @@ class CENOMEcsvParser(MatchingParser):
         sample = search_class(archive, "CE_NOME_Sample")
         if sample is not None:
             upload_id, entry_id = sample["upload_id"], sample["entry_id"]
-            entry.samples = [get_reference(upload_id, entry_id)]
+            entry.samples = [CompositeSystemReference(reference=get_reference(upload_id, entry_id))]
 
         environment = search_class(archive, "CE_NOME_Environment")
         if environment is not None:

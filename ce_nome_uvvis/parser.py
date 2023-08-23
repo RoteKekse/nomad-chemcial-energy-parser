@@ -24,6 +24,7 @@ from baseclasses.helper.utilities import create_archive, search_class, get_refer
 
 import os
 import datetime
+from nomad.datamodel.metainfo.basesections import CompositeSystemReference
 
 '''
 This is a hello world style example for an example parser/converter.
@@ -55,7 +56,7 @@ class UVvisParser(MatchingParser):
         sample = search_class(archive, "CE_NOME_Sample")
         if sample is not None:
             upload_id, entry_id = sample["upload_id"], sample["entry_id"]
-            uvvis.samples = [get_reference(upload_id, entry_id)]
+            uvvis.samples = [CompositeSystemReference(reference=get_reference(upload_id, entry_id))]
         uvvis.name = f"{mainfile_split[0]} {notes}"
         uvvis.description = f"Notes from file name: {notes}"
         uvvis.data_file = [os.path.basename(mainfile)]
