@@ -51,12 +51,16 @@ class CENOMEcsvParser(MatchingParser):
         if len(mainfile_split) > 2:
             notes = mainfile_split[1]
         entry = CE_NOME_Measurement()
-        with open(mainfile) as f:
-            first_line = f.readline()
-        if first_line.startswith("Time;Push Pull"):
-            entry = CE_NOME_PumpRateMeasurement()
 
-        if first_line.startswith("1.5.1.23"):
+        if mainfile_split[-1].endswith("csv"):
+            with open(mainfile) as f:
+                first_line = f.readline()
+            if first_line.startswith("Time;Push Pull"):
+                entry = CE_NOME_PumpRateMeasurement()
+
+            if first_line.startswith("1.5.1.23"):
+                entry = CE_NOME_PhaseFluorometryOxygen()
+        elif mainfile_split[-1].endswith("xlsx"):
             entry = CE_NOME_PhaseFluorometryOxygen()
 
         archive.metadata.entry_name = os.path.basename(mainfile)
@@ -77,8 +81,10 @@ class CENOMEcsvParser(MatchingParser):
 
         entry.name = f"{mainfile_split[0]} {notes}"
         entry.description = f"Notes from file name: {notes}"
-
-        entry.data_file = os.path.basename(mainfile)
+        try:
+            entry.data_file = os.path.basename(mainfile)
+        except:
+            entry.data_file = [os.path.basename(mainfile)]
         entry.datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
 
         file_name = f'{os.path.basename(mainfile)}.archive.json'
