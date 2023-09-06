@@ -1,0 +1,7 @@
+plugin_type: parser
+name: parsers/ce_xrd_xy
+description: |
+  This is a parser for xrd data.
+mainfile_name_re: ^(.+\.?.+.xy)$
+parser_class_name: ce_xrd_xy.XRDParser
+code_name: XRD code
