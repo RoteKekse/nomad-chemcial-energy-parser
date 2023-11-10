@@ -49,7 +49,7 @@ class GamryParser(MatchingParser):
         measurement_base, measurement_name = os.path.split(mainfile)
 
         measurements = []
-        if "COLLECT" in metadata["TAG"]:
+        if "COLLECT" in metadata["TAG"] or ("CV" in metadata["TAG"] and "WE2CURVE" in metadata):
             from ce_nome_s import CE_NOME_Chronoamperometry, CE_NOME_CyclicVoltammetry
             mCA = CE_NOME_Chronoamperometry()
             mCA.station = metadata.get("RINGPSTAT")
@@ -69,6 +69,10 @@ class GamryParser(MatchingParser):
 
             measurements.append((nCA, mCA))
             measurements.append((nCV, mCV))
+        elif "CV" in metadata["TAG"]:
+            from ce_nome_s import CE_NOME_CyclicVoltammetry
+            measurements.append(
+                (measurement_name, CE_NOME_CyclicVoltammetry()))
 
         if "CHRONOA" in metadata["TAG"]:
             from ce_nome_s import CE_NOME_Chronoamperometry
@@ -79,11 +83,6 @@ class GamryParser(MatchingParser):
             from ce_nome_s import CE_NOME_Chronopotentiometry
             measurements.append(
                 (measurement_name, CE_NOME_Chronopotentiometry()))
-
-        if "CV" in metadata["TAG"]:
-            from ce_nome_s import CE_NOME_CyclicVoltammetry
-            measurements.append(
-                (measurement_name, CE_NOME_CyclicVoltammetry()))
 
         if "CHRONOC" in metadata["TAG"]:
             from ce_nome_s import CE_NOME_Chronocoulometry
