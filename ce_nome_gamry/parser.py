@@ -16,17 +16,43 @@
 # limitations under the License.
 #
 
+from nomad.datamodel.metainfo.basesections import CompositeSystemReference
 from nomad.datamodel import EntryArchive
 from nomad.parsing import MatchingParser
-
+from nomad.datamodel.metainfo.annotations import (
+    ELNAnnotation,
+)
+from nomad.datamodel.data import (
+    EntryData,
+)
+from nomad.metainfo import (
+    Quantity,
+)
+from nomad.datamodel.metainfo.basesections import (
+    Activity,
+)
 import os
 
 from baseclasses.helper.utilities import find_sample_by_id, create_archive, get_entry_id_from_file_name, get_reference, search_class
 
-from nomad.datamodel.metainfo.basesections import CompositeSystemReference
+from ce_nome_s import CE_NOME_Chronoamperometry, CE_NOME_CyclicVoltammetry, \
+    CE_NOME_Chronopotentiometry, CE_NOME_Chronopotentiometry, CE_NOME_Chronocoulometry, CE_NOME_OpenCircuitVoltage,\
+    CE_NOME_ElectrochemicalImpedanceSpectroscopy, CE_NOME_LinearSweepVoltammetry
+
+
 '''
 This is a hello world style example for an example parser/converter.
 '''
+
+
+class ParsedGamryFile(EntryData):
+    activity = Quantity(
+        type=Activity,
+        shape=["*"],
+        a_eln=ELNAnnotation(
+            component='ReferenceEditQuantity',
+        )
+    )
 
 
 class GamryParser(MatchingParser):
@@ -49,54 +75,43 @@ class GamryParser(MatchingParser):
         measurement_base, measurement_name = os.path.split(mainfile)
 
         measurements = []
-        if "COLLECT" in metadata["TAG"] or ("CV" in metadata["TAG"] and "WE2CURVE" in metadata):
-            from ce_nome_s import CE_NOME_Chronoamperometry, CE_NOME_CyclicVoltammetry
-            mCA = CE_NOME_Chronoamperometry()
-            mCA.station = metadata.get("RINGPSTAT")
+        connected_experiments = []
+        # if "COLLECT" in metadata["TAG"] or ("CV" in metadata["TAG"] and "WE2CURVE" in metadata):
+        if "METHOD" in metadata:
+            methods = metadata.get("METHOD").split("-")
+        else:
+            methods = [metadata.get("TAG")]
 
-            mCV = CE_NOME_CyclicVoltammetry()
-            mCV.station = metadata.get("RINGPSTAT")
+        for method in methods:
+            file_name = f"{measurement_name}_{method}.archive.json"
+            eid = get_entry_id_from_file_name(file_name, archive)
+            connected_experiments.append(get_reference(archive.metadata.upload_id, eid))
+            if "CV" in method:
+                measurements.append(
+                    (eid, file_name, CE_NOME_CyclicVoltammetry()))
 
-            nCA = f"{measurement_name}_CA.archive.json"
-            nCV = f"{measurement_name}_CV.archive.json"
-            eid_CA = get_entry_id_from_file_name(nCA, archive)
-            eid_CV = get_entry_id_from_file_name(nCV, archive)
+            if "LSV" in method:
+                measurements.append(
+                    (eid, file_name, CE_NOME_LinearSweepVoltammetry()))
 
-            mCA.connected_experiments = [get_reference(
-                archive.metadata.upload_id, eid_CV)]
-            mCV.connected_experiments = [get_reference(
-                archive.metadata.upload_id, eid_CA)]
+            if "CHRONOA" in method or "CA" in method:
+                measurements.append(
+                    (eid, file_name, CE_NOME_Chronoamperometry()))
 
-            measurements.append((nCA, mCA))
-            measurements.append((nCV, mCV))
-        elif "CV" in metadata["TAG"]:
-            from ce_nome_s import CE_NOME_CyclicVoltammetry
-            measurements.append(
-                (measurement_name, CE_NOME_CyclicVoltammetry()))
+            if "CHRONOP" in method or "CP" in method:
+                measurements.append(
+                    (eid, file_name, CE_NOME_Chronopotentiometry()))
 
-        if "CHRONOA" in metadata["TAG"]:
-            from ce_nome_s import CE_NOME_Chronoamperometry
-            measurements.append(
-                (measurement_name, CE_NOME_Chronoamperometry()))
+            if "CHRONOC" in method or "CC" in method:
+                measurements.append((eid, file_name, CE_NOME_Chronocoulometry()))
 
-        if "CHRONOP" in metadata["TAG"]:
-            from ce_nome_s import CE_NOME_Chronopotentiometry
-            measurements.append(
-                (measurement_name, CE_NOME_Chronopotentiometry()))
+            if "CORPOT" in method:
+                measurements.append(
+                    (eid, file_name, CE_NOME_OpenCircuitVoltage()))
 
-        if "CHRONOC" in metadata["TAG"]:
-            from ce_nome_s import CE_NOME_Chronocoulometry
-            measurements.append((measurement_name, CE_NOME_Chronocoulometry()))
-
-        if "CORPOT" in metadata["TAG"]:
-            from ce_nome_s import CE_NOME_OpenCircuitVoltage
-            measurements.append(
-                (measurement_name, CE_NOME_OpenCircuitVoltage()))
-
-        if "EISPOT" in metadata["TAG"]:
-            from ce_nome_s import CE_NOME_ElectrochemicalImpedanceSpectroscopy
-            measurements.append(
-                (measurement_name, CE_NOME_ElectrochemicalImpedanceSpectroscopy()))
+            if "EISPOT" in method:
+                measurements.append(
+                    (eid, file_name, CE_NOME_ElectrochemicalImpedanceSpectroscopy()))
 
         archive.metadata.entry_name = os.path.basename(mainfile)
 
@@ -125,15 +140,22 @@ class GamryParser(MatchingParser):
                 upload_id, entry_id = setup["upload_id"], setup["entry_id"]
                 setup_ref = get_reference(upload_id, entry_id)
 
-        for name, measurement in measurements:
+        refs = []
+        for idx, (eid, name, measurement) in enumerate(measurements):
             measurement.data_file = measurement_name
+            measurement.connected_experiments = [c for c in connected_experiments if eid not in c]
+            measurement.function = "Generator"
+            if idx > 0:
+                measurement.function = "Detector"
             if sample_ref is not None:
                 measurement.samples = [CompositeSystemReference(reference=sample_ref)]
             if environment_ref is not None:
                 measurement.environment = environment_ref
             if setup_ref is not None:
                 measurement.setup = setup_ref
-            if ".archive.json" not in name:
-                name += ".archive.json"
             name = name.replace("#", "run")
             create_archive(measurement, archive, name)
+            refs.append(get_reference(archive.metadata.upload_id, eid))
+
+        archive.data = ParsedGamryFile(activity=refs)
+        archive.metadata.entry_name = measurement_name
