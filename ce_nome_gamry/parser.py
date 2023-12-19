@@ -109,7 +109,7 @@ class GamryParser(MatchingParser):
                 measurements.append(
                     (eid, file_name, CE_NOME_OpenCircuitVoltage()))
 
-            if "EISPOT" in method:
+            if "EISPOT" in method or "PEIS" in method:
                 measurements.append(
                     (eid, file_name, CE_NOME_ElectrochemicalImpedanceSpectroscopy()))
 
