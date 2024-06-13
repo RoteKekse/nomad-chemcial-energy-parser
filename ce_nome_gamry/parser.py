@@ -36,8 +36,8 @@ import os
 from baseclasses.helper.utilities import find_sample_by_id, create_archive, get_entry_id_from_file_name, get_reference, search_class
 
 from ce_nome_s import CE_NOME_Chronoamperometry, CE_NOME_CyclicVoltammetry, \
-    CE_NOME_Chronopotentiometry, CE_NOME_Chronopotentiometry, CE_NOME_Chronocoulometry, CE_NOME_OpenCircuitVoltage,\
-    CE_NOME_ElectrochemicalImpedanceSpectroscopy, CE_NOME_LinearSweepVoltammetry
+    CE_NOME_Chronopotentiometry, CE_NOME_Chronopotentiometry, CE_NOME_Chronocoulometry, CE_NOME_OpenCircuitVoltage, \
+    CE_NOME_ElectrochemicalImpedanceSpectroscopy, CE_NOME_LinearSweepVoltammetry, CE_NOME_GalvanodynamicSweep
 
 
 '''
@@ -94,6 +94,10 @@ class GamryParser(MatchingParser):
                 measurements.append(
                     (eid, file_name, CE_NOME_LinearSweepVoltammetry()))
 
+            if "LSG" in method:
+                measurements.append(
+                    (eid, file_name, CE_NOME_GalvanodynamicSweep()))
+
             if "CHRONOA" in method or "CA" in method:
                 measurements.append(
                     (eid, file_name, CE_NOME_Chronoamperometry()))
@@ -114,7 +118,7 @@ class GamryParser(MatchingParser):
                     (eid, file_name, CE_NOME_ElectrochemicalImpedanceSpectroscopy()))
 
         archive.metadata.entry_name = os.path.basename(mainfile)
-
+        nickname = metadata.get("NICK")
         sample_id = metadata.get("SAMPLEID")
         setup_id = metadata.get("ECSETUPID")
         environment_id = metadata.get("ENVIRONMENTID")
@@ -142,6 +146,7 @@ class GamryParser(MatchingParser):
 
         refs = []
         for idx, (eid, name, measurement) in enumerate(measurements):
+            measurement.name = nickname
             measurement.data_file = measurement_name
             measurement.connected_experiments = [c for c in connected_experiments if eid not in c]
             measurement.function = "Generator"
